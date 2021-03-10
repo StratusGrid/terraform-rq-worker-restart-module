@@ -1,4 +1,5 @@
- // Import required AWS SDK clients and commands for Node.js
+exports.handler =  async function(event, context) {
+// Import required AWS SDK clients and commands for Node.js
 const aws = require ("aws-sdk");
 aws.config.update({region: "us-west-2"});
 const ecs = new aws.ECS()
@@ -8,11 +9,6 @@ var params = {
     cluster_name: process.env.CLUSTER_NAME,
     forceNewDeployment: process.env.FORCE_NEW_DEPLOYMENT
 };
-// var params = {
-//     service: 'rqworker_normal', /* required */
-//     cluster: 'VENUE-DEV',
-//     forceNewDeployment: true,
-// };
 
 ecs.updateService(params, function(err, data) {
     if (err) console.log(err, err.stack); // an error occurred
@@ -20,6 +16,10 @@ ecs.updateService(params, function(err, data) {
   });
 // Set the AWS region
 const REGION = "us-west-2"; //e.g. "us-east-1"
+
+    console.log("EVENT: \n" + JSON.stringify(event, null, 2))
+    return context.logStreamName
+  }
 
 // Create EC2 service object
 // const ec2client = new EC2Client({ region: REGION });
