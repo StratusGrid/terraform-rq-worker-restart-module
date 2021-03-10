@@ -11,7 +11,7 @@ module "terraform-rq-worker-restart-module" {
   name                = "${var.name_prefix}-ecs-service-restart${local.name_suffix}"
   input_tags          = merge(local.common_tags, {})
   memory_size         = 128
-  timeoutsecond       = 60
+  timeout_sec       = 60
   schedule_expression = "cron(0 8 * * ? *)"
   service_name        = "my-rqworker-service"
   cluster_name        = "my-cluster"
