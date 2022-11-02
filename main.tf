@@ -1,51 +1,51 @@
 #Event rule to direct events to the Lambda Function
 resource "aws_cloudwatch_event_rule" "event" {
-  name        = var.name
-  description = "Schedule to trigger lambda function"
+  name                = var.name
+  description         = "Schedule to trigger lambda function"
   schedule_expression = var.schedule_expression
 }
 
 #Target to direct event at function
 resource "aws_cloudwatch_event_target" "function_target" {
-  rule = aws_cloudwatch_event_rule.event.name
+  rule      = aws_cloudwatch_event_rule.event.name
   target_id = var.name
-  arn = aws_lambda_function.function.arn
+  arn       = aws_lambda_function.function.arn
 }
 
 #Permission to allow event trigger
 resource "aws_lambda_permission" "allow_cloudwatch_event_trigger" {
-  statement_id = "TrustCWEToInvokeMyLambdaFunction"
-  action = "lambda:InvokeFunction"
+  statement_id  = "TrustCWEToInvokeMyLambdaFunction"
+  action        = "lambda:InvokeFunction"
   function_name = aws_lambda_function.function.function_name
-  principal = "events.amazonaws.com"
-  source_arn = aws_cloudwatch_event_rule.event.arn
+  principal     = "events.amazonaws.com"
+  source_arn    = aws_cloudwatch_event_rule.event.arn
 }
 
 #Automatic packaging of code
 data "archive_file" "function_code" {
-  type = "zip"
-  source_dir = "${path.module}/rq_worker_restart.js"
+  type        = "zip"
+  source_dir  = "${path.module}/rq_worker_restart.js"
   output_path = "${path.module}/function_code.zip"
 }
 
 #Function to process event
 resource "aws_lambda_function" "function" {
-  filename = data.archive_file.function_code.output_path
+  filename         = data.archive_file.function_code.output_path
   source_code_hash = filebase64sha256(data.archive_file.function_code.output_path)
-  function_name = var.name
-  role = aws_iam_role.function_role.arn
-  handler = "rq_work_restart.handler"
-  runtime = "nodejs12.x"
-  timeout = var.timeout_sec
-  memory_size = var.memory_size
+  function_name    = var.name
+  role             = aws_iam_role.function_role.arn
+  handler          = "rq_work_restart.handler"
+  runtime          = "nodejs12.x"
+  timeout          = var.timeout_sec
+  memory_size      = var.memory_size
   environment {
     variables = {
-      SERVICE_NAME = var.service_name
-      CLUSTER_NAME = var.cluster_name
+      SERVICE_NAME         = var.service_name
+      CLUSTER_NAME         = var.cluster_name
       FORCE_NEW_DEPLOYMENT = var.force_new_deployment
     }
   }
- #Should we include VPC/Security Group info..
+  #Should we include VPC/Security Group info..
   lifecycle {
     ignore_changes = [last_modified]
   }
@@ -81,7 +81,7 @@ resource "aws_iam_role_policy" "function_policy_default" {
   name = "${var.name}-default-policy"
   role = aws_iam_role.function_role.id
 
-policy = <<EOF
+  policy = <<EOF
 {
   "Version": "2012-10-17",
   "Statement": [
@@ -124,7 +124,7 @@ resource "aws_iam_role_policy" "function_policy" {
   name = var.name
   role = aws_iam_role.function_role.id
 
-policy = <<EOF
+  policy = <<EOF
 {
   "Version": "2012-10-17",
   "Statement": [
